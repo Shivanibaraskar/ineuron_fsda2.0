@@ -1,0 +1,124 @@
+USE WAREHOUSE 'FIRST_WAREHOUSE';
+USE DATABASE "FIRST_AGENTDB";
+
+CREATE table CONSUMER_COMPLAINTS
+
+(    DATE_RECEIVED STRING,
+     PRODUCT_NAME VARCHAR2(50),
+     SUB_PRODUCT VARCHAR2(100),
+     ISSUE VARCHAR2(100),
+     SUB_ISSUE VARCHAR2(100),
+     CONSUMER_COMPLAINT_NARRATIVE string,
+     Company_Public_Response STRING,
+     Company VARCHAR(100),
+     State_Name CHAR(4),
+     Zip_Code string,
+     Tags VARCHAR(40),
+     Consumer_Consent_Provided CHAR(25),
+     Submitted_via STRING,
+     Date_Sent_to_Company STRING,
+     Company_Response_to_Consumer VARCHAR(40),
+     Timely_Response CHAR(4),
+     CONSUMER_DISPUTED CHAR(4),
+     COMPLAINT_ID NUMBER(12,0) NOT NULL PRIMARY KEY
+);
+USE WAREHOUSE "FIRST_WAREHOUSE";
+---To fetch unique records
+SELECT DISTINCT * FROM CONSUMER_COMPLAINTS;
+---To fetch unique columns
+SELECT DISTINCT SUB_PRODUCT FROM CONSUMER_COMPLAINTS;
+---To fetch only 100 records
+SELECT * FROM CONSUMER_COMPLAINTS LIMIT 100;
+
+---Like Operator
+Select Distinct * from CONSUMER_COMPLAINTS WHERE Product_Name LIKE 'Bank%';
+Select Distinct * from CONSUMER_COMPLAINTS WHERE SUBMITTED_VIA LIKE 'F_%';
+
+---IN operator
+USE WAREHOUSE "FIRST_WAREHOUSE";
+Select * from CONSUMER_COMPLAINTS;
+SELECT DISTINCT * FROM CONSUMER_COMPLAINTS WHERE PRODUCT_NAME IN ('Consumer Loan', 'Mortgage', 'Debt Collection');
+SELECT DISTINCT * FROM CONSUMER_COMPLAINTS WHERE COMPANY IN ('Wells Fargo & Company', 'Capital One');
+
+---Cases Statement Example 1
+SELECT DISTINCT SUBMITTED_VIA FROM CONSUMER_COMPLAINTS;
+SELECT DISTINCT *,
+ CASE
+     WHEN SUBMITTED_VIA IN ('Postal mail','Referral','Email') THEN 'OUTBOUND'
+     WHEN SUBMITTED_VIA IN ('Phone','Web') THEN 'INBOUND'
+     ELSE 'ELECTRONICS'
+ END AS SUBMISSION_TYPE FROM CONSUMER_COMPLAINTS;
+---Case Statement Example 2
+SELECT DATE_RECEIVED,PRODUCT_NAME, SUB_PRODUCT, ISSUE, COMPANY, STATE_NAME, SUBMITTED_VIA,
+  CASE
+     WHEN SUBMITTED_VIA IN ('Postal mail','Referral','Email') THEN 'OUTBOUND'
+     WHEN SUBMITTED_VIA IN ('Phone','Web') THEN 'INBOUND'
+     ELSE 'ELECTRONICS'
+ END AS SUBMISSION_TYPE FROM CONSUMER_COMPLAINTS;
+--- Case Stement Example 3
+SELECT DISTINCT PRODUCT_NAME FROM CONSUMER_COMPLAINTS;
+SELECT *,
+   CASE 
+       WHEN UPPER(PRODUCT_NAME) LIKE '%LOAN' THEN 'LOAN'
+       WHEN PRODUCT_NAME IN ('Bank account or service', 'Mortgage', 'Debt collection', 'Credit reporting', 'Money transfers')
+       THEN 'Services'
+       Else 'Others'
+   END AS FINANCE_TYPE FROM CONSUMER_COMPLAINTS; 
+---Case statement Example 4
+SELECT DISTINCT SUB_PRODUCT FROM CONSUMER_COMPLAINTS;
+SELECT *, 
+   CASE
+       WHEN SUB_PRODUCT LIKE '%card' THEN 'CARD'
+       WHEN SUB_PRODUCT LIKE '%loan%' THEN 'Loan'
+       WHEN Lower(SUB_PRODUCT) LIKE '%mortgage%' THEN 'Mortgage'
+       WHEN SUB_PRODUCT = 'I do not know' OR SUB_PRODUCT IS NULL THEN 'Not required'
+       ElSE SUB_PRODUCT
+   END AS Sub_product_type from CONSUMER_COMPLAINTS;
+---Case Statement Example 5
+SELECT DISTINCT COMPANY_RESPONSE_TO_CONSUMER FROM CONSUMER_COMPLAINTS;
+SELECT *, 
+   CASE 
+       WHEN COMPANY_RESPONSE_TO_CONSUMER LIKE '%explanation' THEN 'Explained'
+       WHEN COMPANY_RESPONSE_TO_CONSUMER IN ('Closed with non-monetary relief','Closed') THEN 'Closed'
+       WHEN COMPANY_RESPONSE_TO_CONSUMER ='Closed with monetary relief' THEN 'Monetary relief provided'
+       Else 'Responded'
+   END AS Company_Responses from CONSUMER_COMPLAINTS;
+-----Merge all the cases in a view
+Select DISTINCT * from CONSUMER_COMPLAINTS;
+---CREATED VIEW 
+CREATE OR REPLACE VIEW SB_COMPANY_RESPONSE_TO_CONSUMER AS
+SELECT DATE_RECEIVED,PRODUCT_NAME, SUB_PRODUCT, ISSUE, COMPANY, STATE_NAME, ZIP_CODE, SUBMITTED_VIA,
+ CASE
+     WHEN SUBMITTED_VIA IN ('Postal mail','Referral','Email') THEN 'OUTBOUND'
+     WHEN SUBMITTED_VIA IN ('Phone','Web') THEN 'INBOUND'
+     ELSE 'ELECTRONICS'
+ END AS SUBMISSION_TYPE,
+ CASE 
+       WHEN UPPER(PRODUCT_NAME) LIKE '%LOAN' THEN 'LOAN'
+       WHEN PRODUCT_NAME IN ('Bank account or service', 'Mortgage', 'Debt collection', 'Credit reporting', 'Money transfers')
+       THEN 'Services'
+       Else 'Others'
+   END AS FINANCE_TYPE,
+ CASE
+       WHEN SUB_PRODUCT LIKE '%card' THEN 'CARD'
+       WHEN SUB_PRODUCT LIKE '%loan%' THEN 'Loan'
+       WHEN Lower(SUB_PRODUCT) LIKE '%mortgage%' THEN 'Mortgage'
+       WHEN SUB_PRODUCT = 'I do not know' OR SUB_PRODUCT IS NULL THEN 'Not required'
+       ElSE SUB_PRODUCT
+   END AS Sub_product_type,
+ CASE 
+       WHEN COMPANY_RESPONSE_TO_CONSUMER LIKE '%explanation' THEN 'Explained'
+       WHEN COMPANY_RESPONSE_TO_CONSUMER IN ('Closed with non-monetary relief','Closed') THEN 'Closed'
+       WHEN COMPANY_RESPONSE_TO_CONSUMER ='Closed with monetary relief' THEN 'Monetary relief provided'
+       Else 'Responded'
+ END AS Company_Responses_TYPE
+FROM CONSUMER_COMPLAINTS;
+
+SELECT * FROM SB_COMPANY_RESPONSE_TO_CONSUMER;
+ 
+
+
+
+
+
+
